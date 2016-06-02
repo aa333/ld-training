@@ -1,0 +1,108 @@
+{
+"frames": [
+	{
+		"filename": "box.png",
+		"trimmed": "true",
+		"frame": {"x":0, "y":0, "w":54, "h":56},
+		"spriteSourceSize": {"x":0,"y":0,"w":54,"h":56},
+		"sourceSize": {"w":54,"h":56}
+	},
+	{
+		"filename": "compbox.png",
+		"trimmed": "true",
+		"frame": {"x":0, "y":57, "w":54, "h":56},
+		"spriteSourceSize": {"x":0,"y":0,"w":54,"h":56},
+		"sourceSize": {"w":54,"h":56}
+	},
+	{
+		"filename": "door_01.png",
+		"trimmed": "true",
+		"frame": {"x":94, "y":0, "w":20, "h":70},
+		"spriteSourceSize": {"x":0,"y":0,"w":20,"h":70},
+		"sourceSize": {"w":20,"h":70}
+	},
+	{
+		"filename": "door_02.png",
+		"trimmed": "true",
+		"frame": {"x":153, "y":0, "w":18, "h":68},
+		"spriteSourceSize": {"x":0,"y":0,"w":18,"h":68},
+		"sourceSize": {"w":18,"h":68}
+	},
+	{
+		"filename": "door_03.png",
+		"trimmed": "true",
+		"frame": {"x":115, "y":0, "w":18, "h":68},
+		"spriteSourceSize": {"x":0,"y":0,"w":18,"h":68},
+		"sourceSize": {"w":18,"h":68}
+	},
+	{
+		"filename": "door_04.png",
+		"trimmed": "true",
+		"frame": {"x":134, "y":0, "w":18, "h":68},
+		"spriteSourceSize": {"x":0,"y":0,"w":18,"h":68},
+		"sourceSize": {"w":18,"h":68}
+	},
+	{
+		"filename": "sensor_a01.png",
+		"trimmed": "true",
+		"frame": {"x":55, "y":75, "w":38, "h":14},
+		"spriteSourceSize": {"x":0,"y":0,"w":38,"h":14},
+		"sourceSize": {"w":38,"h":14}
+	},
+	{
+		"filename": "sensor_a02.png",
+		"trimmed": "true",
+		"frame": {"x":55, "y":105, "w":38, "h":14},
+		"spriteSourceSize": {"x":0,"y":0,"w":38,"h":14},
+		"sourceSize": {"w":38,"h":14}
+	},
+	{
+		"filename": "sensor_a03.png",
+		"trimmed": "true",
+		"frame": {"x":55, "y":45, "w":38, "h":14},
+		"spriteSourceSize": {"x":0,"y":0,"w":38,"h":14},
+		"sourceSize": {"w":38,"h":14}
+	},
+	{
+		"filename": "sensor_i00.png",
+		"trimmed": "true",
+		"frame": {"x":55, "y":90, "w":38, "h":14},
+		"spriteSourceSize": {"x":0,"y":0,"w":38,"h":14},
+		"sourceSize": {"w":38,"h":14}
+	},
+	{
+		"filename": "sensor_i01.png",
+		"trimmed": "true",
+		"frame": {"x":55, "y":60, "w":38, "h":14},
+		"spriteSourceSize": {"x":0,"y":0,"w":38,"h":14},
+		"sourceSize": {"w":38,"h":14}
+	},
+	{
+		"filename": "sensor_i02.png",
+		"trimmed": "true",
+		"frame": {"x":55, "y":30, "w":38, "h":14},
+		"spriteSourceSize": {"x":0,"y":0,"w":38,"h":14},
+		"sourceSize": {"w":38,"h":14}
+	},
+	{
+		"filename": "sensor_i03.png",
+		"trimmed": "true",
+		"frame": {"x":55, "y":15, "w":38, "h":14},
+		"spriteSourceSize": {"x":0,"y":0,"w":38,"h":14},
+		"sourceSize": {"w":38,"h":14}
+	},
+	{
+		"filename": "sensor_i04.png",
+		"trimmed": "true",
+		"frame": {"x":55, "y":0, "w":38, "h":14},
+		"spriteSourceSize": {"x":0,"y":0,"w":38,"h":14},
+		"sourceSize": {"w":38,"h":14}
+	}
+
+],
+"meta": {
+	"image": "main.png",
+	"size": {"w": 256, "h": 128},
+	"scale": "1"
+}
+}

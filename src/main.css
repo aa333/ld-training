@@ -1,0 +1,25 @@
+#container{
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    margin-top: -240px;
+    margin-left: -370px;
+    width: 800px;
+    height: 600px;
+    background-color: black;
+}
+
+#canvas{
+    width: 800px;
+    height: 600px;
+    background-color: blue;
+}
+
+#info{
+	margin-top: 15px;
+	padding: 10px;
+    width: 800px;
+    height: 100px;
+    background-color: black;
+	color: gray;
+}
