@@ -19,14 +19,15 @@ module.exports =
     @loadingLabel()
     
     #Add here all the assets that you need to game.load
-    game.load.atlas('sample', 'assets/sample.png', 'assets/sample.json')
+    game.load.atlas('sprites', 'assets/sprites.png', 'assets/sprites.json')
     game.load.image('menu_splash', 'assets/menu_splash.jpg');
     game.load.image('button', 'assets/button.png');
-    game.load.audio('sample_sound', 'assets/sample.wav');
+    game.load.tilemap('test1', 'assets/test1.json', null, Phaser.Tilemap.TILED_JSON)
+    game.load.image('tileset', 'assets/tilemap.png')
     console.log("loaded assets")
 
   create: ->
-    game.state.start "menu"
+    game.state.start "play"
 
 # window.WebFontConfig =
 # #'active' means all requested fonts have finished loading

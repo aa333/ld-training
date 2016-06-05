@@ -1,7 +1,8 @@
 # Game entry point
 Phaser = require('./phaser-shim.coffee')
 
-window.enableFirefoxOptimisations = navigator.userAgent.toLowerCase().indexOf('firefox') > -1
+window.enableFirefoxOptimisations = true # navigator.userAgent.toLowerCase().indexOf('firefox') > -1
+#Alexey: without it in Chrome I do not see pathlines for some reason
 window.game = new Phaser.Game(800, 600, (if enableFirefoxOptimisations then Phaser.CANVAS else Phaser.AUTO), 'canvas')
 
 game.state.add('init', require('./init.coffee'));
