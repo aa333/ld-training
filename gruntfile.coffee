@@ -46,7 +46,7 @@ module.exports = (grunt) =>
         browserify: 
             dev: 
                 dest: 'build/game.js',
-                src: ['src/scripts/**/*.js', 'src/scripts/**/*.coffee']
+                src: ['src/scripts/**/*.js', 'src/scripts/**/*.coffee', 'src/scripts/*.coffee']
             
             build:
                 dest: 'build/game.js',
