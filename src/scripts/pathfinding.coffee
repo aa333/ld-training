@@ -4,7 +4,11 @@ EasyStar = require('easystarjs')
 OBSTACLES = [5, 9, 13]
 SMALL_CELL_SIZE = 8
 
+UNIT_MARGIN = 1
+PREDICT_FOR = 10
+
 fromWorld = (c) -> Math.floor(c/SMALL_CELL_SIZE)
+fromWorldH = (c) -> Math.ceil(c/SMALL_CELL_SIZE)
 toWorld = (c) -> c*SMALL_CELL_SIZE
 
 FREE = 0
@@ -41,7 +45,7 @@ module.exports = class PassableWorld
     g = game.add.graphics(0, 0, @_debugGroup)
     for o in [PERMANENT_OBSTACLE, TEMP_OBSTACLE, UNIT]
       g.beginFill(o, 0.2)
-      (@_units[0].finder.debugGrid ? @_worldMap).forEach (row, y) ->
+      (@_units[0].finder.grid ? @_worldMap).forEach (row, y) ->
         row.forEach (cell, x) ->
           g.drawRect(toWorld(x), toWorld(y), SMALL_CELL_SIZE, SMALL_CELL_SIZE) if cell == o
       g.endFill()
@@ -74,31 +78,67 @@ module.exports = class PassableWorld
     es = null
     finder = {
       path: null,
-      debugGrid: null,
+      grid: null,
+      unitsStored: [],
+      tx: null, ty: null, cb: null,
+      sinceUpdate: 2000,
+
+      updatePath: =>
+        return if finder.sinceUpdate < 200
+        console.log("repeat pathfinding") if finder.path
+        finder.sinceUpdate = 0
+        finder.path = null
+        es.findPath fromWorld(unit.sprite.x), fromWorld(unit.sprite.y), fromWorld(finder.tx), fromWorld(finder.ty), (path) =>
+          finder.path = path?.map ({x,y}) -> {x: toWorld(x), y: toWorld(y), cx: x, cy: y}
+          if not path
+            console.warn("could not find way to ", finder.tx, finder.ty)
+          finder.cb()
+          @drawDebug(true)
+
+      collisionPredicted: =>
+        finder.path?.slice(0, PREDICT_FOR).some ({cx,cy}) -> finder.grid[cy][cx] != FREE
+
+      updateUnits: =>
+        return unless finder.grid
+        finder.unitsStored.forEach ({x,y}) ->
+          finder.grid[y][x] = FREE
+        finder.unitsStored = []
+        #TODO: here could be optimization: unit's map is created once per world, each units gets it and copy internally EXCEPT points related to itself
+        @_units.forEach (u) ->
+          return if u.unit == unit
+          {sprite} = u.unit
+          bounds = {x: sprite.x - sprite.width/2, y: sprite.y - sprite.height/2, width: sprite.width, height: sprite.height}
+          x1 = fromWorld(bounds.x)-UNIT_MARGIN
+          y1 = fromWorld(bounds.y)-UNIT_MARGIN
+          x2 = fromWorldH(bounds.x + bounds.width)+UNIT_MARGIN
+          y2 = fromWorldH(bounds.y + bounds.height)+UNIT_MARGIN
+          for x in [x1...x2]
+            for y in [y1...y2]
+              finder.grid[y][x] = UNIT
+              finder.unitsStored.push({x,y})
+          if u.finder.path?.length > 0
+            u.finder.path.slice(0, PREDICT_FOR).forEach ({cx,cy}) ->
+              finder.grid[cy][cx] = UNIT
+              finder.unitsStored.push({x:cx,y:cy})
+
       find: (tx, ty, cb) =>
         if es
           throw "path finding already started. seems to be a mistake in logic"
         es = new EasyStar.js()
         grid = @_worldMap.map (row) -> row.map (cell) -> cell  # just a copy
 
-        @_units.forEach (u) ->
-          return if u.unit == unit
-          x1 = fromWorld(u.unit.sprite.x)
-          y1 = fromWorld(u.unit.sprite.y)
-          x2 = fromWorld(u.unit.sprite.x + u.unit.sprite.width)
-          y2 = fromWorld(u.unit.sprite.y + u.unit.sprite.height)
-          for x in [x1...x2]
-            for y in [y1...y2]
-              grid[y][x] = UNIT
         es.setGrid(grid)
-        finder.debugGrid = grid
+        finder.grid = grid
+        finder.unitsStored = []
+        finder.updateUnits()
+
         es.setAcceptableTiles([FREE])
-        es.findPath fromWorld(unit.sprite.x), fromWorld(unit.sprite.y), fromWorld(tx), fromWorld(ty), (path) =>
-          finder.path = path?.map ({x,y}) -> {x: toWorld(x), y: toWorld(y)}
-          if not path
-            console.warn("could not find way to ", tx, ty)
-          cb()
-          @drawDebug(true)
+        es.enableDiagonals()
+        es.disableCornerCutting()
+        finder.tx = tx
+        finder.ty = ty
+        finder.cb = cb
+        finder.updatePath()
 
       stop: ->
         es = null
@@ -106,6 +146,10 @@ module.exports = class PassableWorld
 
       update: ->
         es?.calculate()
+        finder.updateUnits()
+        finder.sinceUpdate += game.time.elapsed
+        if finder.collisionPredicted()
+          finder.updatePath()
 
       destroy: ->
         @destroyPathFinder(unit)
