@@ -2,9 +2,9 @@ debug = require('./debug.coffee')
 EasyStar = require('easystarjs')
 
 OBSTACLES = [5, 9, 13]
-SMALL_CELL_SIZE = 8
+SMALL_CELL_SIZE = 16
 
-UNIT_MARGIN = 1
+UNIT_MARGIN = 0
 PREDICT_FOR = 10
 
 fromWorld = (c) -> Math.floor(c/SMALL_CELL_SIZE)
@@ -108,10 +108,10 @@ module.exports = class PassableWorld
           return if u.unit == unit
           {sprite} = u.unit
           bounds = {x: sprite.x - sprite.width/2, y: sprite.y - sprite.height/2, width: sprite.width, height: sprite.height}
-          x1 = fromWorld(bounds.x)-UNIT_MARGIN
-          y1 = fromWorld(bounds.y)-UNIT_MARGIN
-          x2 = fromWorldH(bounds.x + bounds.width)+UNIT_MARGIN
-          y2 = fromWorldH(bounds.y + bounds.height)+UNIT_MARGIN
+          x1 = Math.max(0, fromWorld(bounds.x)-UNIT_MARGIN)
+          y1 = Math.max(0, fromWorld(bounds.y)-UNIT_MARGIN)
+          x2 = Math.min(fromWorld(game.world.width), fromWorldH(bounds.x + bounds.width)+UNIT_MARGIN)
+          y2 = Math.min(fromWorld(game.world.height), fromWorldH(bounds.y + bounds.height)+UNIT_MARGIN)
           for x in [x1...x2]
             for y in [y1...y2]
               finder.grid[y][x] = UNIT
@@ -128,6 +128,7 @@ module.exports = class PassableWorld
         grid = @_worldMap.map (row) -> row.map (cell) -> cell  # just a copy
 
         es.setGrid(grid)
+        es.setIterationsPerCalculation(100)
         finder.grid = grid
         finder.unitsStored = []
         finder.updateUnits()
