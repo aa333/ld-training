@@ -1,9 +1,9 @@
 SPAWNING_RATES = [
-  {soldiers: 1, every: 10000, upgradeOn: 5},
-  {soldiers: 1, every: 8000, upgradeOn: 10},
-  {soldiers: 1, every: 5000, upgradeOn: 20},
-  {soldiers: 1, every: 2000, upgradeOn: 50},
-  {soldiers: 1, every: 1000, upgradeOn: 9999},
+  {soldiers: 1, every: 60000, upgradeOn: 5},
+  {soldiers: 1, every: 50000, upgradeOn: 10},
+  {soldiers: 1, every: 40000, upgradeOn: 20},
+  {soldiers: 1, every: 30000, upgradeOn: 50},
+  {soldiers: 1, every: 10000, upgradeOn: 9999},
 ]
 
 LUMBERING_SPEED = 2/1000    # 2 hp per sec
@@ -16,10 +16,10 @@ HIT_PROP = 0.5              #
 HITPOINTS_DROP = 10         # hp per shoot
 MOVING_SPEED = 1/1000       # 1 pix per sec
 ZOMBIE_FACTOR = 0.5
-OUTSIDE_FRONTLINE_FACTOR = 0.3
+OUTSIDE_FRONTLINE_FACTOR = 0.2
 OUTSIDE_FRONTLINE_PROP = 0.3
 
-FRONT_MOVING_SPEED = 0.01/1000
+FRONT_MOVING_SPEED = 0.001/1000
 
 SOLDIER_HP = 100
 ZOMBIE_HP = 1000
@@ -27,6 +27,8 @@ TREE_HP = 100
 MAIN_TREE_HP = 300
 
 INITIAL_LUMBERING_AREA = 0.05
+
+ZOMBIE_HP_LOSS = 2/1000   # 2hp per sec
 
 LEFT = (x) -> x
 RIGHT = (x) -> 1 - x
@@ -77,7 +79,7 @@ class Side
     if positions.length > 0
       positions = positions.map(@absFn)
       @unitsEdge = Math.max.apply(null, positions)
-      @unitsEdgeSum = positions.filter((p) -> p > 0.5).reduce(((a,b) -> a+b), 0)
+      @unitsEdgeSum = positions.filter((p) => p > @edge).reduce(((a,b) -> a+b), 0)
     else
       @unitsEdge = 0
       @unitsEdgeSum = 0
@@ -235,6 +237,10 @@ window.Proto = {
         dx = dxes[s.side]
         if s.zombie
           dx = dx * ZOMBIE_FACTOR
+          s.health -= ZOMBIE_HP_LOSS*ts
+        if s.health <= 0
+          soldiers[s.side] = soldiers[s.side].filter((s1) -> s1 != s)
+          return
         if inRange(s, s.x + dx)
           s.x += dx
         if not inRange(s, s.x + dx)
@@ -333,7 +339,7 @@ window.Proto = {
     stepTo = ->
       return if not running
       step()
-      setTimeout(stepTo, 50)
+      setTimeout(stepTo, 10)
 
     stepTo()
 
