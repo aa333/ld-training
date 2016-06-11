@@ -14,6 +14,19 @@ CENTER = WIDTH/2
 SHOOTING_DIST = 10
 HIT_PROP = 0.5              #
 HITPOINTS_DROP = 10         # hp per shoot
+MOVING_SPEED = 1/1000       # 1 pix per sec
+ZOMBIE_FACTOR = 0.5
+OUTSIDE_FRONTLINE_FACTOR = 0.3
+OUTSIDE_FRONTLINE_PROP = 0.3
+
+FRONT_MOVING_SPEED = 0.01/1000
+
+SOLDIER_HP = 100
+ZOMBIE_HP = 1000
+TREE_HP = 100
+MAIN_TREE_HP = 300
+
+INITIAL_LUMBERING_AREA = 0.05
 
 LEFT = (x) -> x
 RIGHT = (x) -> 1 - x
@@ -25,13 +38,16 @@ conv =
 class Side
   constructor: (@absFn)->
     @edge = 0.5
-    @lumberingMaxEdge = 0.0
+    @lumberingMaxEdge = INITIAL_LUMBERING_AREA
     @lumberingActualEdge = 0
     @lumberCollected = 0
 
     @spawningRateIdx = 0
     @lastSpawnTs = 0
     @killed = 0
+
+    @unitsEdge = 0
+    @unitsEdgeSum = 0
 
   spawningRate: -> SPAWNING_RATES[@spawningRateIdx]
 
@@ -55,7 +71,16 @@ class Side
 
   updateEdge: (relativeX) ->
     @edge = @absFn(relativeX)
-    @lumberingMaxEdge = Math.max(0, @edge - 0.5) # + @lumberingActualEdge
+    @lumberingMaxEdge = Math.max(0, @edge - 0.5 + INITIAL_LUMBERING_AREA) # + @lumberingActualEdge
+
+  updatePositions: (positions) ->
+    if positions.length > 0
+      positions = positions.map(@absFn)
+      @unitsEdge = Math.max.apply(null, positions)
+      @unitsEdgeSum = positions.filter((p) -> p > 0.5).reduce(((a,b) -> a+b), 0)
+    else
+      @unitsEdge = 0
+      @unitsEdgeSum = 0
 
 
   getMovingRange: ->
@@ -78,7 +103,45 @@ class BattleModel
     @right = new Side(RIGHT)
 
   ###### Here we calculate area for each side
-  _recalculateAreas: ->
+  _recalculateAreas: (ts) ->
+    #@_recalculateAreas_usingKilled(ts)
+    #@_recalculateAreas_usingPositions(ts)
+    @_recalculateAreas_usingPositionsSum(ts)
+
+  _recalculateAreas_usingPositionsSum: (ts) ->
+    return if not ts
+    leftMost = @left.unitsEdgeSum
+    rightMost = @right.unitsEdgeSum
+    if leftMost > 0 || rightMost > 0
+      if leftMost > rightMost
+        target = Math.min(@left.unitsEdge, @frontLine + FRONT_MOVING_SPEED*ts)
+      else
+        target = Math.max(1 - @right.unitsEdge, @frontLine - FRONT_MOVING_SPEED*ts)
+
+      if target > @frontLine
+        @frontLine += Math.min(target - @frontLine, FRONT_MOVING_SPEED*ts)
+      else
+        @frontLine -= Math.min(@frontLine - target, FRONT_MOVING_SPEED*ts)
+
+    @left.updateEdge(@frontLine)
+    @right.updateEdge(@frontLine)
+
+  _recalculateAreas_usingPositions: (ts) ->
+    return if not ts
+    leftMost = @left.unitsEdge
+    rightMost = @right.unitsEdge
+    if leftMost > 0.5 || rightMost > 0.5
+      if leftMost > rightMost
+        @frontLine = Math.min(leftMost, @frontLine + FRONT_MOVING_SPEED*ts)
+      else
+        @frontLine = Math.max(1 - rightMost, @frontLine - FRONT_MOVING_SPEED*ts)
+    @left.updateEdge(@frontLine)
+    @right.updateEdge(@frontLine)
+
+  update: (ts) ->
+    @_recalculateAreas(ts)
+
+  _recalculateAreas_usingKilled: (ts) ->
     diffInKills = @right.killed - @left.killed
     totalKills = @right.killed + @left.killed
     @frontLine = 0.5 - Math.max(-0.5, Math.min(0.5, diffInKills / Math.max(40, totalKills)))
@@ -117,6 +180,8 @@ class BattleModel
     @[side].onKill()
     @_recalculateAreas()
 
+  updatePositions: (side, solds) ->
+    @[side].updatePositions(solds)
 
 
 
@@ -127,14 +192,14 @@ window.Proto = {
     ctx = document.getElementById("canvas").getContext("2d")
 
     generate = (side, count) ->
-      [0...count].map () -> {x: conv[side](0.1)*WIDTH, y: Math.random() * HEIGHT, side: side, health: 100 }
+      [0...count].map () -> {x: conv[side](0.1)*WIDTH, y: Math.random() * HEIGHT, side: side, health: SOLDIER_HP }
 
     soldiers = {
       left: generate('left', 4),
       right: generate('right', 4)
     }
-    trees = [0...80].map -> { x: Math.random()*WIDTH, y: Math.random()*HEIGHT, health: 100 }
-    MainTree = {x: WIDTH/2, y: HEIGHT/2, health: 300, main: true}
+    trees = [0...80].map -> { x: Math.random()*WIDTH, y: Math.random()*HEIGHT, health: TREE_HP }
+    MainTree = {x: WIDTH/2, y: HEIGHT/2, health: MAIN_TREE_HP, main: true}
     trees.push(MainTree)
     shoots = []
 
@@ -150,8 +215,8 @@ window.Proto = {
           soldiers[side] = soldiers[side].concat(generate(side, counts.soldiers))
       allowed = model.getMovingRange()
       dxes = {
-        left: +1,
-        right: -1
+        left: +MOVING_SPEED*ts,
+        right: -MOVING_SPEED*ts
       }
       inRange = (s, x) ->
         allowed[s.side][0]*WIDTH <= x and allowed[s.side][1]*WIDTH >= x
@@ -169,11 +234,13 @@ window.Proto = {
       soldiers.left.concat(soldiers.right).forEach (s) ->
         dx = dxes[s.side]
         if s.zombie
-          dx = dx / 2
+          dx = dx * ZOMBIE_FACTOR
         if inRange(s, s.x + dx)
           s.x += dx
-        if not inRange(s, s.x)
-          s.x -= dx
+        if not inRange(s, s.x + dx)
+          if Math.random() < OUTSIDE_FRONTLINE_PROP
+            s.x += dx*OUTSIDE_FRONTLINE_FACTOR
+
 
       # shooting
       soldiers.left.forEach (s1) ->
@@ -194,6 +261,9 @@ window.Proto = {
           model.onTreeCut({side, relativeX: tr.x / WIDTH})
       trees = trees.filter((tr) -> tr.health > 0)
 
+      model.updatePositions('left', soldiers.left.map(({x}) -> x/WIDTH))
+      model.updatePositions('right', soldiers.right.map(({x}) -> x/WIDTH))
+      model.update(ts)
       if MainTree.health <= 0
         console.log('Game over')
         running = false
@@ -252,6 +322,8 @@ window.Proto = {
           lumbers: #{model.right.lumberCollected}
           killed: #{model.right.killed}
           spawnLevel: #{model.right.spawningRateIdx}
+        Model:
+          frontLine: #{model.frontLine.toFixed(2)}
       """
 
     step = ->
@@ -275,16 +347,14 @@ window.Proto = {
     document.getElementById("left").addEventListener "click", ->
       g = generate('left', 1)[0]
       g.zombie = true
-      g.health = 300
+      g.health = ZOMBIE_HP
       soldiers.left.push(g)
       render()
 
     document.getElementById("right").addEventListener "click", ->
       g = generate('right', 1)[0]
       g.zombie = true
-      g.health = 300
+      g.health = ZOMBIE_HP
       soldiers.right.push(g)
       render()
-
-
 }
