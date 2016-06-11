@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="description" content="Game test">
+    <script>
+        // I like mocks
+        window.Phaser = {Game: function() {
+            this.state = {
+                add: function() {},
+                start: function() {}
+            }
+        }}
+    </script>
+    <script src="game.js"></script>
+</head>
+<body style="background:black">
+<div id="container">
+    <button id="pause">Pause</button> <button id="resume">Resume</button> <button id="step">Step</button><br/>
+    <button id="left">Spawn left zombie</button>
+    <button id="right">Spawn right zombie</button>
+    <br/>
+    <canvas id ="canvas" width="805" height="400"></canvas>
+    <pre id="st" style="color: white"></pre>
+</div>
+<script>
+    window.Proto.init();
+</script>
+
+</body>
+
+</html>

@@ -12,6 +12,7 @@ hero = null
 debugText = null
 map = null
 layer = null
+treetopLayer = null
 grunts1 = []
 
 cursor = null
@@ -43,19 +44,22 @@ class Cursor
 module.exports.create = () ->
   console.log("creating play state")
   gameObjects = game.add.group()
+  treetops = game.add.group()
 
   map = game.add.tilemap('test1')
   map.addTilesetImage('tilemap', 'tileset')
   layer = map.createLayer('Layer1', undefined, undefined, gameObjects)
   layer.resizeWorld()
+  treetopLayer = map.createLayer('treetop', undefined, undefined, treetops)
 
   passableWorld = new PassableWorld(layer)
   cursor = new Cursor(gameObjects)
 
   hero = new Hero({x: 100, y: 100, group: gameObjects})
-  grunts1.push(new Grunt({x: 400, y: 100, group: gameObjects}))
-
-  grunts1[0].patroll({x: 400, y: 300}, {x: 700, y: 200}, {x: 400, y: 100})
+  [0...20].forEach (i) ->
+    g = new Grunt({x: 130 + i*40, y: 100, group: gameObjects})
+    grunts1.push(g)
+    g.patroll({x: 400+i*40, y: 300}, {x: 700+i*40, y: 200}, {x: 400+i*40, y: 100})
   passableWorld.addObstacle(100,500,200,20)
 
   [hero].concat(grunts1).forEach passableWorld.assignPathFinder
@@ -71,8 +75,16 @@ module.exports.update = () ->
   debug(tile?.index ? -1)
 
   cursor.update(tile)
-  hero.update()
-  grunts1.forEach (g) -> g.update()
+  [hero].concat(grunts1).forEach (g) ->
+    g.update()
+    treetopLayerItem = map.getTile(treetopLayer.getTileX(g.sprite.x), treetopLayer.getTileY(g.sprite.y), treetopLayer)
+    if g.underTreetop and g.underTreetop != treetopLayerItem
+      g.underTreetop.alpha = 1.0
+      g.underTreetop = null
+    if treetopLayerItem
+      g.underTreetop = treetopLayerItem
+      treetopLayerItem.alpha = 0.5
+
   passableWorld.update()
 
   

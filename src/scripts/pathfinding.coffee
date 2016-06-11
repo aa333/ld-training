@@ -1,7 +1,7 @@
 debug = require('./debug.coffee')
 EasyStar = require('easystarjs')
 
-OBSTACLES = [5, 9, 13]
+OBSTACLES = [21]
 SMALL_CELL_SIZE = 16
 
 UNIT_MARGIN = 0
