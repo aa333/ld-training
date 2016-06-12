@@ -241,6 +241,8 @@ window.Proto = {
         if s.health <= 0
           soldiers[s.side] = soldiers[s.side].filter((s1) -> s1 != s)
           return
+        if s.x + dx < 0 || s.x + dx >= WIDTH
+          return
         if inRange(s, s.x + dx)
           s.x += dx
         if not inRange(s, s.x + dx)
@@ -324,10 +326,16 @@ window.Proto = {
           lumbers: #{model.left.lumberCollected}
           killed: #{model.left.killed}
           spawnLevel: #{model.left.spawningRateIdx}
+          edge: #{model.left.edge.toFixed(2)}
+          unitsEdge: #{model.left.unitsEdge.toFixed(2)}
+          unitsEdgeSum: #{model.left.unitsEdgeSum.toFixed(2)}
         Right:
           lumbers: #{model.right.lumberCollected}
           killed: #{model.right.killed}
           spawnLevel: #{model.right.spawningRateIdx}
+          edge: #{model.right.edge.toFixed(2)}
+          unitsEdge: #{model.right.unitsEdge.toFixed(2)}
+          unitsEdgeSum: #{model.right.unitsEdgeSum.toFixed(2)}
         Model:
           frontLine: #{model.frontLine.toFixed(2)}
       """
