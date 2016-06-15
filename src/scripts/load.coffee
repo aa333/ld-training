@@ -20,10 +20,12 @@ module.exports =
     
     #Add here all the assets that you need to game.load
     game.load.atlas('sprites', 'assets/sprites.png', 'assets/sprites.json')
+    game.load.atlas('objects', 'assets/objects.png', 'assets/objects.json')
+    game.load.atlas('ui', 'assets/ui.png', 'assets/ui.json')
     game.load.image('menu_splash', 'assets/menu_splash.jpg');
     game.load.image('button', 'assets/button.png');
-    game.load.tilemap('test1', 'assets/test1.json', null, Phaser.Tilemap.TILED_JSON)
-    game.load.image('tileset', 'assets/tilemap.png')
+    game.load.tilemap('testlvl', 'assets/testlvl.json', null, Phaser.Tilemap.TILED_JSON)
+    game.load.image('tilemap_main', 'assets/tilemap_main.png')
     console.log("loaded assets")
 
   create: ->
