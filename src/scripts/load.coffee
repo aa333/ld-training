@@ -24,6 +24,7 @@ module.exports =
     game.load.image('button', 'assets/button.png');
     game.load.tilemap('test1', 'assets/test1.json', null, Phaser.Tilemap.TILED_JSON)
     game.load.image('tileset', 'assets/tilemap.png')
+    game.load.image('corpse', 'assets/corpse.png')
     console.log("loaded assets")
 
   create: ->

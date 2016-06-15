@@ -1,10 +1,12 @@
 # Main play state
 Phaser = require('./phaser-shim.coffee')
 Hero = require('./objects/hero.coffee')
-Grunt = require('./objects/grunt.coffee')
+Unit = require('./objects/unit.coffee')
+Corpse = require('./objects/corpse.coffee')
 debug = require('./debug.coffee')
 PassableWorld = require('./pathfinding.coffee')
 World = require('./logic/world.coffee')
+common = require('./common.coffee')
 
 
 keyLockMap = {}
@@ -12,8 +14,9 @@ space = null
 hero = null
 debugText = null
 map = null
-layer = null
+obstaclesLayer = null
 treetopLayer = null
+groundLayer = null
 world = null
 
 cursor = null
@@ -42,46 +45,52 @@ class Cursor
     else
       @_cursor.visible = false
 
-
-Options =
-  soldier: {health: 100, vision: 100, speed: 0.5}
-  soldierZombie: {health: 1000, vision: 100, speed: 1, healthLoosingSpeed: 2}
-
-
 module.exports.create = () ->
   console.log("creating play state")
+  ground = game.add.group()
+  corpses = game.add.group()
   gameObjects = game.add.group()
   treetops = game.add.group()
 
   map = game.add.tilemap('test1')
   map.addTilesetImage('tilemap', 'tileset')
-  layer = map.createLayer('Layer1', undefined, undefined, gameObjects)
-  layer.resizeWorld()
+  groundLayer = map.createLayer('ground', undefined, undefined, ground)
+  groundLayer.resizeWorld()
+  obstaclesLayer = map.createLayer('obstacles', undefined, undefined, gameObjects)
   treetopLayer = map.createLayer('treetop', undefined, undefined, treetops)
+  map.setLayer(obstaclesLayer)
 
-  passableWorld = new PassableWorld(layer)
+  passableWorld = new PassableWorld(obstaclesLayer)
   cursor = new Cursor(gameObjects)
-  world = new World layer, {
-    soldier: (opts) ->
-      opts = Phaser.Utils.mixin(Options.soldier, opts)
-      opts.group = gameObjects
-      g = new Grunt(opts)
-      passableWorld.assignPathFinder(g)
-      g
-  }
-
-  hero = new Hero({x: 400, y: 100, group: gameObjects})
-
+  spawn = (type, options) ->
+    options = Phaser.Utils.mixin(common.units[type], options)
+    options.group = gameObjects
+    options.corpseGroup = corpses
+    u = new Unit(options)
+    passableWorld.assignPathFinder(u)
+    return u
+  world = new World(obstaclesLayer, spawn)
+  hero = new Hero(Phaser.Utils.mixin(common.units.hero, {x: 400, y: 100, group: gameObjects}) )
   passableWorld.assignPathFinder(hero)
 
   game.input.onTap.add (e) =>
     hero.walkTo({x: e.worldX, y: e.worldY})
 
+  game.input.keyboard.onPressCallback = (key) ->
+    return if not Corpse.hovered
+    switch key
+      when 'x'
+        world.resurrect(hero, Corpse.hovered)
+        # resurrect
+      when 'b'
+        # borrow
+        world.borrow(hero, Corpse.hovered)
+
   #debug.init()
 
 
 module.exports.update = () ->
-  tile = map.getTileWorldXY(game.input.activePointer.worldX, game.input.activePointer.worldY)
+  tile = map.getTileWorldXY(game.input.activePointer.worldX, game.input.activePointer.worldY, groundLayer)
   debug(tile?.index ? -1)
 
   cursor.update(tile)

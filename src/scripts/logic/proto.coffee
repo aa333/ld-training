@@ -1,5 +1,5 @@
 BattleModel = require('./battlemodel.coffee')
-Napoleon = require('./napoleon.coffee')
+Commander = require('./commander.coffee')
 
 class MockUnit
   constructor: ({@side, @x, @y, @health, @zombie}) ->
@@ -67,8 +67,8 @@ window.Proto = {
   init: ->
     model = new BattleModel(WIDTH)
     ais =
-      left: new Napoleon('left')
-      right: new Napoleon('right')
+      left: new Commander('left')
+      right: new Commander('right')
     ctx = document.getElementById("canvas").getContext("2d")
 
     generate = (side, count) ->
@@ -110,6 +110,8 @@ window.Proto = {
           battlemodel: model,
           isEmpty: -> true
           getTileSize: -> 1
+          getMovingRange: (side) -> model.getMovingRange()[side]
+          getEnemies: (s1) -> soldiers[{left: 'right', right: 'left'}[s1.side]]
           findAround: (s1) -> soldiers[{left: 'right', right: 'left'}[s1.side]].filter((s2) ->
             dx = s1.x - s2.x
             dy = s1.y - s2.y

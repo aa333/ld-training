@@ -1,7 +1,6 @@
 debug = require('./debug.coffee')
 EasyStar = require('easystarjs')
 
-OBSTACLES = [21]
 SMALL_CELL_SIZE = 32
 
 UNIT_MARGIN = 0
@@ -25,7 +24,7 @@ module.exports = class PassableWorld
     @_units = []
     @_worldMap = [0...layer.map.height*smallInTile].map (y) ->
       [0...layer.map.width*smallInTile].map (x) ->
-        if layer.layer.data[Math.floor(y/smallInTile)][Math.floor(x/smallInTile)].index in OBSTACLES then PERMANENT_OBSTACLE else FREE
+        if layer.map.hasTile(Math.floor(x/smallInTile), Math.floor(y/smallInTile), layer) then PERMANENT_OBSTACLE else FREE
 
 
   update: ->
