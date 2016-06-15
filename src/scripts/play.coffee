@@ -4,6 +4,7 @@ Hero = require('./objects/hero.coffee')
 Grunt = require('./objects/grunt.coffee')
 debug = require('./debug.coffee')
 PassableWorld = require('./pathfinding.coffee')
+World = require('./logic/world.coffee')
 
 
 keyLockMap = {}
@@ -13,7 +14,7 @@ debugText = null
 map = null
 layer = null
 treetopLayer = null
-grunts1 = []
+world = null
 
 cursor = null
 passableWorld = null
@@ -41,6 +42,12 @@ class Cursor
     else
       @_cursor.visible = false
 
+
+Options =
+  soldier: {health: 100, vision: 100, speed: 0.5}
+  soldierZombie: {health: 1000, vision: 100, speed: 1, healthLoosingSpeed: 2}
+
+
 module.exports.create = () ->
   console.log("creating play state")
   gameObjects = game.add.group()
@@ -54,20 +61,23 @@ module.exports.create = () ->
 
   passableWorld = new PassableWorld(layer)
   cursor = new Cursor(gameObjects)
+  world = new World layer, {
+    soldier: (opts) ->
+      opts = Phaser.Utils.mixin(Options.soldier, opts)
+      opts.group = gameObjects
+      g = new Grunt(opts)
+      passableWorld.assignPathFinder(g)
+      g
+  }
 
-  hero = new Hero({x: 100, y: 100, group: gameObjects})
-  [0...20].forEach (i) ->
-    g = new Grunt({x: 130 + i*40, y: 100, group: gameObjects})
-    grunts1.push(g)
-    g.patroll({x: 400+i*40, y: 300}, {x: 700+i*40, y: 200}, {x: 400+i*40, y: 100})
-  passableWorld.addObstacle(100,500,200,20)
+  hero = new Hero({x: 400, y: 100, group: gameObjects})
 
-  [hero].concat(grunts1).forEach passableWorld.assignPathFinder
+  passableWorld.assignPathFinder(hero)
 
   game.input.onTap.add (e) =>
     hero.walkTo({x: e.worldX, y: e.worldY})
 
-  debug.init()
+  #debug.init()
 
 
 module.exports.update = () ->
@@ -75,8 +85,9 @@ module.exports.update = () ->
   debug(tile?.index ? -1)
 
   cursor.update(tile)
-  [hero].concat(grunts1).forEach (g) ->
-    g.update()
+  hero.update()
+  world.update()
+  [hero].concat(world.units.left).concat(world.units.right).forEach (g) ->
     treetopLayerItem = map.getTile(treetopLayer.getTileX(g.sprite.x), treetopLayer.getTileY(g.sprite.y), treetopLayer)
     if g.underTreetop and g.underTreetop != treetopLayerItem
       g.underTreetop.alpha = 1.0

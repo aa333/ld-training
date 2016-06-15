@@ -9,14 +9,18 @@ module.exports = class Base
     @sprite = game.add.sprite(x, y, 'sprites', undefined, group)
     @sprite.anchor.set(0.5, 0.5)
     @stop()
-    @speed = 4
+    @speed = 0.2
     @mstate = Base.IDLE
+    @speedFactor = 1
 
+
+  getX: -> @sprite.x
+  getY: -> @sprite.y
 
   walkTo: (npos) ->
     @stop()
     @_target = npos
-    @mstate = @FINDING
+    @mstate = Base.FINDING
     @_pathfinder?.find npos.x, npos.y, =>
       if not @_pathfinder.path
         @mstate = Base.IDLE
@@ -51,13 +55,14 @@ module.exports = class Base
 
     if @mstate == Base.WALK
       distance = Phaser.Math.distance(@sprite.x, @sprite.y, @_walkCell.x, @_walkCell.y)
-      if distance < @speed
+      delta = game.time.elapsed * @speed * @speedFactor
+      if distance < delta
         @sprite.x = @_walkCell.x
         @sprite.y = @_walkCell.y
         @mstate = Base.FINDING
       else
-        @sprite.x += @speed * (@_walkCell.x - @sprite.x) / distance
-        @sprite.y += @speed * (@_walkCell.y - @sprite.y) / distance
+        @sprite.x += delta * (@_walkCell.x - @sprite.x) / distance
+        @sprite.y += delta * (@_walkCell.y - @sprite.y) / distance
 
 
 

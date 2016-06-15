@@ -2,7 +2,7 @@ debug = require('./debug.coffee')
 EasyStar = require('easystarjs')
 
 OBSTACLES = [21]
-SMALL_CELL_SIZE = 16
+SMALL_CELL_SIZE = 32
 
 UNIT_MARGIN = 0
 PREDICT_FOR = 10
@@ -83,8 +83,9 @@ module.exports = class PassableWorld
       tx: null, ty: null, cb: null,
       sinceUpdate: 2000,
 
-      updatePath: =>
-        return if finder.sinceUpdate < 200
+      updatePath: (force) =>
+        if finder.sinceUpdate < 200 and not force
+          return
         console.log("repeat pathfinding") if finder.path
         finder.sinceUpdate = 0
         finder.path = null
@@ -92,7 +93,8 @@ module.exports = class PassableWorld
           finder.path = path?.map ({x,y}) -> {x: toWorld(x), y: toWorld(y), cx: x, cy: y}
           if not path
             console.warn("could not find way to ", finder.tx, finder.ty)
-          finder.cb()
+          finder.cb?()
+          finder.cb = null
           @drawDebug(true)
 
       collisionPredicted: =>
@@ -100,6 +102,7 @@ module.exports = class PassableWorld
 
       updateUnits: =>
         return unless finder.grid
+        return #temp
         finder.unitsStored.forEach ({x,y}) ->
           finder.grid[y][x] = FREE
         finder.unitsStored = []
@@ -139,18 +142,19 @@ module.exports = class PassableWorld
         finder.tx = tx
         finder.ty = ty
         finder.cb = cb
-        finder.updatePath()
+        finder.updatePath(force = true)
 
       stop: ->
+        #console.log('stop', finder.tx )
         es = null
         finder.path = null
 
       update: ->
         es?.calculate()
-        finder.updateUnits()
+        #finder.updateUnits()
         finder.sinceUpdate += game.time.elapsed
-        if finder.collisionPredicted()
-          finder.updatePath()
+        #if finder.collisionPredicted()
+        #  finder.updatePath()
 
       destroy: ->
         @destroyPathFinder(unit)

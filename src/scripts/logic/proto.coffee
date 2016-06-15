@@ -1,16 +1,54 @@
-SPAWNING_RATES = [
-  {soldiers: 1, every: 60000, upgradeOn: 5},
-  {soldiers: 1, every: 50000, upgradeOn: 10},
-  {soldiers: 1, every: 40000, upgradeOn: 20},
-  {soldiers: 1, every: 30000, upgradeOn: 50},
-  {soldiers: 1, every: 10000, upgradeOn: 9999},
-]
+BattleModel = require('./battlemodel.coffee')
+Napoleon = require('./napoleon.coffee')
+
+class MockUnit
+  constructor: ({@side, @x, @y, @health, @zombie}) ->
+    @speedFactor = 1
+
+  walkTo: ({x,y}) ->
+    @nx = x
+    @ny = y
+    @busy = true
+
+  stop: ->
+    @busy = false
+
+  update: (ts) ->
+    if @nx and @nx != @x
+      dir = if @nx > @x then +1 else -1
+      @x += MOVING_SPEED*ts*dir*@speedFactor
+      if Math.abs(@nx - @x) < 0.1
+        @x = @nx
+    if @ny and @ny != @y
+      dir = if @ny > @y then +1 else -1
+      @y += MOVING_SPEED*ts*dir*@speedFactor
+      if Math.abs(@ny - @y) < 0.1
+        @y = @ny
+    if @nx == @x && @ny == @y
+      @nx = null
+      @ny = null
+      @busy = false
+
+  fire: (onComplete) ->
+    onComplete?()
+    @busy = false
+
+  fall: (onComplete) ->
+    onComplete?()
+
+  getX: -> @x
+  getY: -> @y
+
+  isBusy: -> @busy
+
+SOLDIER_HP = 100
+ZOMBIE_HP = 1000
+TREE_HP = 100
+MAIN_TREE_HP = 300
+ZOMBIE_HP_LOSS = 2/1000   # 2hp per sec
 
 LUMBERING_SPEED = 2/1000    # 2 hp per sec
 PIX_SIZE = 5
-HEIGHT = 400/PIX_SIZE
-WIDTH = 800/PIX_SIZE
-CENTER = WIDTH/2
 SHOOTING_DIST = 10
 HIT_PROP = 0.5              #
 HITPOINTS_DROP = 10         # hp per shoot
@@ -19,182 +57,22 @@ ZOMBIE_FACTOR = 0.5
 OUTSIDE_FRONTLINE_FACTOR = 0.2
 OUTSIDE_FRONTLINE_PROP = 0.3
 
-FRONT_MOVING_SPEED = 0.001/1000
-
-SOLDIER_HP = 100
-ZOMBIE_HP = 1000
-TREE_HP = 100
-MAIN_TREE_HP = 300
-
-INITIAL_LUMBERING_AREA = 0.05
-
-ZOMBIE_HP_LOSS = 2/1000   # 2hp per sec
-
-LEFT = (x) -> x
-RIGHT = (x) -> 1 - x
-
-conv =
-  left: LEFT
-  right: RIGHT
-
-class Side
-  constructor: (@absFn)->
-    @edge = 0.5
-    @lumberingMaxEdge = INITIAL_LUMBERING_AREA
-    @lumberingActualEdge = 0
-    @lumberCollected = 0
-
-    @spawningRateIdx = 0
-    @lastSpawnTs = 0
-    @killed = 0
-
-    @unitsEdge = 0
-    @unitsEdgeSum = 0
-
-  spawningRate: -> SPAWNING_RATES[@spawningRateIdx]
-
-  shallSpawn: (ts) ->
-    ts - @lastSpawnTs >= @spawningRate().every
-
-  canCut: (relativeX) ->
-    @absFn(relativeX) <= @lumberingMaxEdge
-
-  onSpawn: (ts) ->
-    @lastSpawnTs = ts
-
-  onKill: ->
-    @killed++
-
-  onTreeCut: (relativeX) ->
-    @lumberingActualEdge = Math.max(@lumberingActualEdge, @absFn(relativeX))
-    @lumberCollected++
-    if @lumberCollected >= @spawningRate().upgradeOn
-      @spawningRateIdx++
-
-  updateEdge: (relativeX) ->
-    @edge = @absFn(relativeX)
-    @lumberingMaxEdge = Math.max(0, @edge - 0.5 + INITIAL_LUMBERING_AREA) # + @lumberingActualEdge
-
-  updatePositions: (positions) ->
-    if positions.length > 0
-      positions = positions.map(@absFn)
-      @unitsEdge = Math.max.apply(null, positions)
-      @unitsEdgeSum = positions.filter((p) => p > @edge).reduce(((a,b) -> a+b), 0)
-    else
-      @unitsEdge = 0
-      @unitsEdgeSum = 0
-
-
-  getMovingRange: ->
-    x1 = @absFn(@edge)
-    x2 = @absFn(0)
-    return [Math.min(x1,x2), Math.max(x1,x2)]
-
-  getLumberingRange: ->
-    x1 = @absFn(@lumberingMaxEdge)
-    x2 = @absFn(0)
-    return [Math.min(x1,x2), Math.max(x1,x2)]
-
-
-
-class BattleModel
-
-  constructor: ->
-    @frontLine = 0.5
-    @left = new Side(LEFT)
-    @right = new Side(RIGHT)
-
-  ###### Here we calculate area for each side
-  _recalculateAreas: (ts) ->
-    #@_recalculateAreas_usingKilled(ts)
-    #@_recalculateAreas_usingPositions(ts)
-    @_recalculateAreas_usingPositionsSum(ts)
-
-  _recalculateAreas_usingPositionsSum: (ts) ->
-    return if not ts
-    leftMost = @left.unitsEdgeSum
-    rightMost = @right.unitsEdgeSum
-    if leftMost > 0 || rightMost > 0
-      if leftMost > rightMost
-        target = Math.min(@left.unitsEdge, @frontLine + FRONT_MOVING_SPEED*ts)
-      else
-        target = Math.max(1 - @right.unitsEdge, @frontLine - FRONT_MOVING_SPEED*ts)
-
-      if target > @frontLine
-        @frontLine += Math.min(target - @frontLine, FRONT_MOVING_SPEED*ts)
-      else
-        @frontLine -= Math.min(@frontLine - target, FRONT_MOVING_SPEED*ts)
-
-    @left.updateEdge(@frontLine)
-    @right.updateEdge(@frontLine)
-
-  _recalculateAreas_usingPositions: (ts) ->
-    return if not ts
-    leftMost = @left.unitsEdge
-    rightMost = @right.unitsEdge
-    if leftMost > 0.5 || rightMost > 0.5
-      if leftMost > rightMost
-        @frontLine = Math.min(leftMost, @frontLine + FRONT_MOVING_SPEED*ts)
-      else
-        @frontLine = Math.max(1 - rightMost, @frontLine - FRONT_MOVING_SPEED*ts)
-    @left.updateEdge(@frontLine)
-    @right.updateEdge(@frontLine)
-
-  update: (ts) ->
-    @_recalculateAreas(ts)
-
-  _recalculateAreas_usingKilled: (ts) ->
-    diffInKills = @right.killed - @left.killed
-    totalKills = @right.killed + @left.killed
-    @frontLine = 0.5 - Math.max(-0.5, Math.min(0.5, diffInKills / Math.max(40, totalKills)))
-    @left.updateEdge(@frontLine)
-    @right.updateEdge(@frontLine)
-
-
-  whoCanCutTreeAt: (relativeX) ->
-    ['left','right'].filter((side) => @[side].canCut(relativeX))[0]
-
-  getSpawnPlan: ({side}, ts) ->
-    if @[side].shallSpawn(ts)
-      @[side].onSpawn(ts)
-      return @[side].spawningRate()
-    return {}
-
-  getMovingRange: -> {
-    left: @left.getMovingRange()
-    right: @right.getMovingRange()
-  }
-
-  getLumberingRange: ->
-    left: @left.getLumberingRange()
-    right: @right.getLumberingRange()
-
-  getStatus: -> {
-    leftLumbering: @left.lumberingMaxEdge,
-    center: @frontLine,
-    rightLumbering: @right.lumberingMaxEdge
-  }
-
-  onTreeCut: ({side, relativeX}) ->
-    @[side].onTreeCut(relativeX)
-
-  onKillBy: ({side}) ->
-    @[side].onKill()
-    @_recalculateAreas()
-
-  updatePositions: (side, solds) ->
-    @[side].updatePositions(solds)
-
+HEIGHT = 400/PIX_SIZE
+WIDTH = 800/PIX_SIZE
+CENTER = WIDTH/2
 
 
 
 window.Proto = {
   init: ->
-    model = new BattleModel()
+    model = new BattleModel(WIDTH)
+    ais =
+      left: new Napoleon('left')
+      right: new Napoleon('right')
     ctx = document.getElementById("canvas").getContext("2d")
 
     generate = (side, count) ->
-      [0...count].map () -> {x: conv[side](0.1)*WIDTH, y: Math.random() * HEIGHT, side: side, health: SOLDIER_HP }
+      [0...count].map () ->  new MockUnit({x: model.convert(side, 4), y: Math.random() * HEIGHT, side, health: SOLDIER_HP} )
 
     soldiers = {
       left: generate('left', 4),
@@ -211,17 +89,6 @@ window.Proto = {
 
     update = (ts) ->
       totalTs += ts
-      ['left', 'right'].forEach (side) ->
-        counts = model.getSpawnPlan({side}, totalTs)
-        if counts.soldiers
-          soldiers[side] = soldiers[side].concat(generate(side, counts.soldiers))
-      allowed = model.getMovingRange()
-      dxes = {
-        left: +MOVING_SPEED*ts,
-        right: -MOVING_SPEED*ts
-      }
-      inRange = (s, x) ->
-        allowed[s.side][0]*WIDTH <= x and allowed[s.side][1]*WIDTH >= x
 
       shoots.forEach (s) ->
         s.ts--
@@ -233,6 +100,40 @@ window.Proto = {
 
       shoots = shoots.filter((s) -> s.ts > 0)
 
+
+
+      ['left', 'right'].forEach (side) ->
+        counts = model.getSpawnPlan({side}, totalTs)
+        if counts.soldier
+          soldiers[side] = soldiers[side].concat(generate(side, counts.soldier))
+        ais[side].update(soldiers[side], {
+          battlemodel: model,
+          isEmpty: -> true
+          getTileSize: -> 1
+          findAround: (s1) -> soldiers[{left: 'right', right: 'left'}[s1.side]].filter((s2) ->
+            dx = s1.x - s2.x
+            dy = s1.y - s2.y
+            dx*dx+dy*dy < SHOOTING_DIST*SHOOTING_DIST
+          )
+          insideWorld: (x, y) ->
+            x >= 0 and y >= 0 and x < WIDTH and y < HEIGHT
+          shoot: (from, to) ->
+            if Math.random() < 0.5
+              shoots.push({from, to, ts: 1})
+        })
+        soldiers[side].forEach (s) -> s.update(ts)
+
+      ###
+      allowed = model.getMovingRange()
+      dxes = {
+        left: +MOVING_SPEED*ts,
+        right: -MOVING_SPEED*ts
+      }
+      inRange = (s, x) ->
+        allowed[s.side][0] <= x and allowed[s.side][1] >= x
+      ###
+
+      ###
       soldiers.left.concat(soldiers.right).forEach (s) ->
         dx = dxes[s.side]
         if s.zombie
@@ -261,16 +162,18 @@ window.Proto = {
             else
               shoots.push({from: s2, to: s1, ts: 1})
 
+      ###
+
       trees.forEach (tr) ->
-        side = model.whoCanCutTreeAt(tr.x / WIDTH)
+        side = model.whoCanCutTreeAt(tr.x)
         if side
           tr.health -= LUMBERING_SPEED*ts
         if tr.health <= 0 and side
-          model.onTreeCut({side, relativeX: tr.x / WIDTH})
+          model.onTreeCut({side, relativeX: tr.x})
       trees = trees.filter((tr) -> tr.health > 0)
 
-      model.updatePositions('left', soldiers.left.map(({x}) -> x/WIDTH))
-      model.updatePositions('right', soldiers.right.map(({x}) -> x/WIDTH))
+      model.updatePositions('left', soldiers.left.map(({x}) -> x))
+      model.updatePositions('right', soldiers.right.map(({x}) -> x))
       model.update(ts)
       if MainTree.health <= 0
         console.log('Game over')
@@ -283,15 +186,15 @@ window.Proto = {
       ctx.clearRect(0, 0, 805, 400)
       ctx.fillStyle = 'rgba(255,0,0,0.2)';
       range = model.getMovingRange()
-      ctx.fillRect(range.left[0]*800, 0, range.left[1]*800, 400)
+      ctx.fillRect(range.left[0]*PIX_SIZE, 0, (range.left[1] - range.left[0] + 1)*PIX_SIZE, 400)
       ctx.fillStyle = 'rgba(0,0,255,0.2)';
-      ctx.fillRect(range.right[0]*800, 0, range.right[1]*800, 400)
+      ctx.fillRect(range.right[0]*PIX_SIZE, 0, (range.right[1] - range.right[0] + 1)*PIX_SIZE, 400)
 
       ctx.fillStyle = 'rgba(255,128,0,0.2)';
       range = model.getLumberingRange()
-      ctx.fillRect(range.left[0]*800, 0, range.left[1]*800, 400)
+      ctx.fillRect(range.left[0]*PIX_SIZE, 0, (range.left[1] - range.left[0] + 1)*PIX_SIZE, 400)
       ctx.fillStyle = 'rgba(0,128,255,0.2)';
-      ctx.fillRect(range.right[0]*800, 0, range.right[1]*800, 400)
+      ctx.fillRect(range.right[0]*PIX_SIZE, 0, (range.right[1] - range.right[0] + 1)*PIX_SIZE, 400)
 
 
       trees.forEach ({x,y,health, main}) ->
@@ -326,18 +229,18 @@ window.Proto = {
           lumbers: #{model.left.lumberCollected}
           killed: #{model.left.killed}
           spawnLevel: #{model.left.spawningRateIdx}
-          edge: #{model.left.edge.toFixed(2)}
-          unitsEdge: #{model.left.unitsEdge.toFixed(2)}
-          unitsEdgeSum: #{model.left.unitsEdgeSum.toFixed(2)}
+          edge: #{model.left.width.toFixed(2)}
+          unitsEdge: #{model.left.unitsWidth.toFixed(2)}
+          unitsEdgeSum: #{model.left.unitsSum.toFixed(2)}
         Right:
           lumbers: #{model.right.lumberCollected}
           killed: #{model.right.killed}
           spawnLevel: #{model.right.spawningRateIdx}
-          edge: #{model.right.edge.toFixed(2)}
-          unitsEdge: #{model.right.unitsEdge.toFixed(2)}
-          unitsEdgeSum: #{model.right.unitsEdgeSum.toFixed(2)}
+          edge: #{model.right.width.toFixed(2)}
+          unitsEdge: #{model.right.unitsWidth.toFixed(2)}
+          unitsEdgeSum: #{model.right.unitsSum.toFixed(2)}
         Model:
-          frontLine: #{model.frontLine.toFixed(2)}
+          frontLine: #{model.frontLineLeft.toFixed(2)}
       """
 
     step = ->
