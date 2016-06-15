@@ -62,11 +62,11 @@ module.exports = class World
     isEmpty: (x,y) =>
       return @_helper.insideWorld(x,y) and not @layer.map.getTile(@layer.getTileX(x), @layer.getTileY(y))
 
-    findAround: (unit) =>
+    getEnemiesToShoot: (unit) =>
       @units[common.opposite[unit.side]].filter((u) -> Phaser.Math.distance(u.getX(), u.getY(), unit.getX(), unit.getY()) <= unit.fireRadius)
 
-    getEnemies: (unit) =>
-      @units[common.opposite[unit.side]]
+    getEnemies: (side) =>
+      @units[common.opposite[side]]
 
     insideWorld: (x, y) =>
       x >= 0 and y >= 0 and x < @layer.map.widthInPixels and y < @layer.map.heightInPixels
@@ -88,8 +88,8 @@ module.exports = class World
             x: @battlemodel.convert(side, 100),
             y: game.rnd.integerInRange(
               0,
-              10
-              #@layer.map.height - 1
+              #10
+              @layer.map.height - 1
             ) * @layer.map.tileWidth
           })
         )

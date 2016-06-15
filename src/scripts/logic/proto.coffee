@@ -111,8 +111,8 @@ window.Proto = {
           isEmpty: -> true
           getTileSize: -> 1
           getMovingRange: (side) -> model.getMovingRange()[side]
-          getEnemies: (s1) -> soldiers[{left: 'right', right: 'left'}[s1.side]]
-          findAround: (s1) -> soldiers[{left: 'right', right: 'left'}[s1.side]].filter((s2) ->
+          getEnemies: (side) -> soldiers[{left: 'right', right: 'left'}[side]]
+          getEnemiesToShoot: (s1) -> soldiers[{left: 'right', right: 'left'}[s1.side]].filter((s2) ->
             dx = s1.x - s2.x
             dy = s1.y - s2.y
             dx*dx+dy*dy < SHOOTING_DIST*SHOOTING_DIST
@@ -125,46 +125,6 @@ window.Proto = {
         })
         soldiers[side].forEach (s) -> s.update(ts)
 
-      ###
-      allowed = model.getMovingRange()
-      dxes = {
-        left: +MOVING_SPEED*ts,
-        right: -MOVING_SPEED*ts
-      }
-      inRange = (s, x) ->
-        allowed[s.side][0] <= x and allowed[s.side][1] >= x
-      ###
-
-      ###
-      soldiers.left.concat(soldiers.right).forEach (s) ->
-        dx = dxes[s.side]
-        if s.zombie
-          dx = dx * ZOMBIE_FACTOR
-          s.health -= ZOMBIE_HP_LOSS*ts
-        if s.health <= 0
-          soldiers[s.side] = soldiers[s.side].filter((s1) -> s1 != s)
-          return
-        if s.x + dx < 0 || s.x + dx >= WIDTH
-          return
-        if inRange(s, s.x + dx)
-          s.x += dx
-        if not inRange(s, s.x + dx)
-          if Math.random() < OUTSIDE_FRONTLINE_PROP
-            s.x += dx*OUTSIDE_FRONTLINE_FACTOR
-
-
-      # shooting
-      soldiers.left.forEach (s1) ->
-        soldiers.right.forEach (s2) ->
-          dx = s1.x - s2.x
-          dy = s1.y - s2.y
-          if dx*dx+dy*dy < SHOOTING_DIST*SHOOTING_DIST
-            if Math.random() < 0.5
-              shoots.push({from: s1, to: s2, ts: 1})
-            else
-              shoots.push({from: s2, to: s1, ts: 1})
-
-      ###
 
       trees.forEach (tr) ->
         side = model.whoCanCutTreeAt(tr.x)

@@ -150,7 +150,7 @@ module.exports = class PassableWorld
 
       update: ->
         es?.calculate()
-        #finder.updateUnits()
+        finder.updateUnits()
         finder.sinceUpdate += game.time.elapsed
         #if finder.collisionPredicted()
         #  finder.updatePath()
