@@ -52,12 +52,12 @@ module.exports.create = () ->
   gameObjects = game.add.group()
   treetops = game.add.group()
 
-  map = game.add.tilemap('test1')
-  map.addTilesetImage('tilemap', 'tileset')
+  map = game.add.tilemap('testlvl')
+  map.addTilesetImage('tilemap_main', 'tilemap_main')
   groundLayer = map.createLayer('ground', undefined, undefined, ground)
-  groundLayer.resizeWorld()
   obstaclesLayer = map.createLayer('obstacles', undefined, undefined, gameObjects)
-  treetopLayer = map.createLayer('treetop', undefined, undefined, treetops)
+  treetopLayer = map.createLayer('foreground', undefined, undefined, treetops)
+  groundLayer.resizeWorld()
   map.setLayer(obstaclesLayer)
 
   passableWorld = new PassableWorld(obstaclesLayer)
@@ -96,14 +96,14 @@ module.exports.update = () ->
   cursor.update(tile)
   hero.update()
   world.update()
-  [hero].concat(world.units.left).concat(world.units.right).forEach (g) ->
-    treetopLayerItem = map.getTile(treetopLayer.getTileX(g.sprite.x), treetopLayer.getTileY(g.sprite.y), treetopLayer)
-    if g.underTreetop and g.underTreetop != treetopLayerItem
-      g.underTreetop.alpha = 1.0
-      g.underTreetop = null
-    if treetopLayerItem
-      g.underTreetop = treetopLayerItem
-      treetopLayerItem.alpha = 0.5
+  #[hero].concat(world.units.left).concat(world.units.right).forEach (g) ->
+  #  treetopLayerItem = map.getTile(treetopLayer.getTileX(g.sprite.x), treetopLayer.getTileY(g.sprite.y), treetopLayer)
+  #  if g.underTreetop and g.underTreetop != treetopLayerItem
+  #    g.underTreetop.alpha = 1.0
+  #    g.underTreetop = null
+  #  if treetopLayerItem
+  #    g.underTreetop = treetopLayerItem
+  #    treetopLayerItem.alpha = 0.5
 
   passableWorld.update()
 

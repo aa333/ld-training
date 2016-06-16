@@ -1,0 +1,87 @@
+{
+"frames": [
+	{
+		"filename": "ui_blue_lumber.png",
+		"trimmed": "true",
+		"frame": {"x":0, "y":248, "w":4, "h":6},
+		"spriteSourceSize": {"x":0,"y":0,"w":4,"h":6},
+		"sourceSize": {"w":4,"h":6}
+	},
+	{
+		"filename": "ui_blue_soldier.png",
+		"trimmed": "true",
+		"frame": {"x":6, "y":224, "w":2, "h":6},
+		"spriteSourceSize": {"x":0,"y":0,"w":2,"h":6},
+		"sourceSize": {"w":2,"h":6}
+	},
+	{
+		"filename": "ui_corpse.png",
+		"trimmed": "true",
+		"frame": {"x":0, "y":242, "w":6, "h":6},
+		"spriteSourceSize": {"x":0,"y":0,"w":6,"h":6},
+		"sourceSize": {"w":6,"h":6}
+	},
+	{
+		"filename": "ui_leftcorner.png",
+		"trimmed": "true",
+		"frame": {"x":174, "y":18, "w":120, "h":134},
+		"spriteSourceSize": {"x":0,"y":0,"w":120,"h":134},
+		"sourceSize": {"w":120,"h":134}
+	},
+	{
+		"filename": "ui_mapbase.png",
+		"trimmed": "true",
+		"frame": {"x":0, "y":0, "w":1024, "h":18},
+		"spriteSourceSize": {"x":0,"y":0,"w":1024,"h":18},
+		"sourceSize": {"w":1024,"h":18}
+	},
+	{
+		"filename": "ui_mark.png",
+		"trimmed": "true",
+		"frame": {"x":70, "y":170, "w":14, "h":34},
+		"spriteSourceSize": {"x":0,"y":0,"w":14,"h":34},
+		"sourceSize": {"w":14,"h":34}
+	},
+	{
+		"filename": "ui_player.png",
+		"trimmed": "true",
+		"frame": {"x":0, "y":224, "w":6, "h":18},
+		"spriteSourceSize": {"x":0,"y":0,"w":6,"h":18},
+		"sourceSize": {"w":6,"h":18}
+	},
+	{
+		"filename": "ui_red_soldier.png",
+		"trimmed": "true",
+		"frame": {"x":4, "y":248, "w":2, "h":6},
+		"spriteSourceSize": {"x":0,"y":0,"w":2,"h":6},
+		"sourceSize": {"w":2,"h":6}
+	},
+	{
+		"filename": "ui_rightcorner.png",
+		"trimmed": "true",
+		"frame": {"x":0, "y":18, "w":174, "h":152},
+		"spriteSourceSize": {"x":0,"y":0,"w":174,"h":152},
+		"sourceSize": {"w":174,"h":152}
+	},
+	{
+		"filename": "ui_skull.png",
+		"trimmed": "true",
+		"frame": {"x":0, "y":170, "w":70, "h":54},
+		"spriteSourceSize": {"x":0,"y":0,"w":70,"h":54},
+		"sourceSize": {"w":70,"h":54}
+	},
+	{
+		"filename": "ui_tree.png",
+		"trimmed": "true",
+		"frame": {"x":0, "y":254, "w":1, "h":1},
+		"spriteSourceSize": {"x":-2,"y":-2,"w":38,"h":64},
+		"sourceSize": {"w":38,"h":64}
+	}
+
+],
+"meta": {
+	"image": "main.png",
+	"size": {"w": 1024, "h": 256},
+	"scale": "1"
+}
+}
