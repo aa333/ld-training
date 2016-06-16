@@ -26,7 +26,6 @@ shortestDirection = (u1, u2) ->
 module.exports = class Commander
   constructor: (@side) ->
 
-  #TODO: get all enemies,
   update: (units, helper) ->
     range = helper.getMovingRange(@side)
     enemies = helper.getEnemies(@side)
