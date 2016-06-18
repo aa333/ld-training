@@ -5,14 +5,14 @@ module.exports = class Base
   @WALK: 'walk'
   @FINDING: 'finding'
 
-  constructor: ({x, y, group}) ->
-    @sprite = game.add.sprite(x, y, 'sprites', undefined, group)
+  constructor: ({x, y, group}, spriteName) ->
+    @sprite = game.add.sprite(x, y, spriteName, undefined, group)
     @sprite.anchor.set(0.5, 0.5)
+    @animPostfix = 'side'
     @stop()
     @speed = 0.2
     @mstate = Base.IDLE
     @speedFactor = 1
-
 
   getX: -> @sprite.x
   getY: -> @sprite.y
@@ -29,9 +29,8 @@ module.exports = class Base
     @_target = null
     @_pathfinder?.stop()
     @mstate = Base.IDLE
-    @sprite.animations.play(Base.IDLE)
 
-
+  walk: ->
 
   update: ->
     @updateLogic()
@@ -49,7 +48,7 @@ module.exports = class Base
         @stop()
       else
         @mstate = Base.WALK
-        @sprite.animations.play(Base.WALK)
+        @walk()
         @_walkCell = @_pathfinder?.path?.shift()
 
 
@@ -61,11 +60,22 @@ module.exports = class Base
         @sprite.y = @_walkCell.y
         @mstate = Base.FINDING
       else
-        @sprite.x += delta * (@_walkCell.x - @sprite.x) / distance
-        @sprite.y += delta * (@_walkCell.y - @sprite.y) / distance
+        dx = @_walkCell.x - @sprite.x
+        dy = @_walkCell.y - @sprite.y
+        oldPostfix = @animPostfix
+        @turnSprite(dx, dy)
+        if oldPostfix != @animPostfix
+          @walk()
+        @sprite.x += delta * (dx) / distance
+        @sprite.y += delta * (dy) / distance
 
-
-
+  turnSprite: (dx, dy) =>
+    dx = Math.sign(dx)
+    dy = Math.sign(dy)
+    @animPostfix = if dy < 0 then "up" else "down"
+    if dx != 0
+      @animPostfix = "side"
+      @sprite.scale.x = dx
 
   assignPathFinder: (pathfinder) ->
     @_pathfinder = pathfinder

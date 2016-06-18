@@ -1,7 +1,9 @@
 module.exports = class Corpse
   @hovered: null
-  constructor: ({x,y, group, @side, @type, image}) ->
-    @sprite = game.add.sprite(x, y, image, null, group)
+  constructor: ({x,y, group, @side, @type}) ->
+    spriteName = if @side == "left" then "soldier_blue" else "soldier_red"
+    @sprite = game.add.sprite(x, y, spriteName, null, group)
+    @sprite.frameName = "death_06.png"
     @sprite.anchor.set(0.5, 0.5)
     @sprite.inputEnabled = true
     @sprite.events.onInputOver.add =>

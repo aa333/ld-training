@@ -5,12 +5,25 @@ debug = require('../debug.coffee')
 module.exports = class Unit extends Base
   # options - all from common.units.* + x,y,group,side
   constructor: (options) ->
-    super(options)
+    spriteName = if options.side == "left" then "soldier_blue" else "soldier_red"
+    super(options, spriteName)
     @side = options.side
-    for anim in ['walk', 'idle', 'fire', 'fall', 'resurrect']
-      opts = options.animations[anim]
-      continue unless opts
-      @sprite.animations.add(anim, opts.sprites(@side), opts.rate, opts.loop, false)
+    
+    @sprite.animations.add("walk_side", Phaser.Animation.generateFrameNames("walk_side_",1,5,".png",2), 20, true, false)
+    @sprite.animations.add("walk_up", Phaser.Animation.generateFrameNames("walk_up_",1,4,".png",2), 20, true, false)
+    @sprite.animations.add("walk_down", Phaser.Animation.generateFrameNames("walk_down_",1,4,".png",2), 20, true, false)
+    @sprite.animations.add("idle", ["idle_01.png"], 1, true, false)
+    @sprite.animations.add("shoot_side", Phaser.Animation.generateFrameNames("shoot_side_",1,4,".png",2), 10, false, false)
+    @sprite.animations.add("shoot_up", Phaser.Animation.generateFrameNames("shoot_side_",1,4,".png",2), 10, false, false)
+    @sprite.animations.add("shoot_down", Phaser.Animation.generateFrameNames("shoot_side_",1,4,".png",2), 10, false, false)
+    @sprite.animations.add("death", Phaser.Animation.generateFrameNames("death_",1,5,".png",2), 10, false, false)
+    @sprite.animations.add("bury", Phaser.Animation.generateFrameNames("bury_",1,9,".png",2), 10, false, false)
+    
+    
+    # for anim in ['walk_side', 'idle', 'shoot_side', 'death']
+    #  opts = options.animations[anim]
+    #  continue unless opts
+    #  @sprite.animations.add(anim, opts.sprites(@side), opts.rate, opts.loop, false)
 
     @state = null
     @health = options.health
@@ -28,7 +41,7 @@ module.exports = class Unit extends Base
       @sprite.events.onInputDown.add =>
         console.log(@)
 
-
+ 
 
   createCorpse: ->
     new Corpse({x: @getX(), y: @getY(), type: @resurrectAt, image: @corpseImg, side: @side, group: @corpseGroup})
@@ -37,28 +50,33 @@ module.exports = class Unit extends Base
     @stop()
 
   isBusy: -> @state || @inMove()
-
+  
+  walk: () ->
+    @sprite.animations.play('walk_'+@animPostfix)
+    super()
 
   getDamage: (damage) ->
     @health -= damage
     #TODO: play some animation
 
-
+  stop: () ->
+    @sprite.animations.play('idle')
+    super()
+    
   fire: (onComplete) ->
     @stop()
     @state = 'firing'
-    @sprite.animations.play('fire').onComplete.addOnce =>
+    @sprite.animations.play('shoot_'+@animPostfix).onComplete.addOnce =>
       @state = null
       onComplete?()
 
 
   fall: (onComplete) ->
     @state = 'dying'
-    @sprite.animations.play('fall').onComplete.addOnce =>
+    @sprite.animations.play('death').onComplete.addOnce =>
       @state = 'dead'
       @sprite.destroy()
       onComplete?()
-
 
   resurrect: (onComplete) ->
     @state = 'resurrecting'

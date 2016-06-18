@@ -21,6 +21,9 @@ module.exports =
     #Add here all the assets that you need to game.load
     game.load.atlas('sprites', 'assets/sprites.png', 'assets/sprites.json')
     game.load.atlas('objects', 'assets/objects.png', 'assets/objects.json')
+    game.load.atlas('soldier_red', 'assets/soldier_red.png', 'assets/soldier.json')
+    game.load.atlas('soldier_blue', 'assets/soldier_blue.png', 'assets/soldier.json')
+    game.load.atlas('objects', 'assets/objects.png', 'assets/objects.json')
     game.load.atlas('ui', 'assets/ui.png', 'assets/ui.json')
     game.load.image('menu_splash', 'assets/menu_splash.jpg');
     game.load.image('button', 'assets/button.png');
