@@ -10,23 +10,30 @@
 	{
 		"filename": "hole2.png",
 		"trimmed": "true",
-		"frame": {"x":258, "y":179, "w":50, "h":46},
+		"frame": {"x":359, "y":0, "w":50, "h":46},
 		"spriteSourceSize": {"x":0,"y":0,"w":50,"h":46},
 		"sourceSize": {"w":50,"h":46}
 	},
 	{
 		"filename": "hole3.png",
 		"trimmed": "true",
-		"frame": {"x":199, "y":179, "w":58, "h":56},
+		"frame": {"x":300, "y":0, "w":58, "h":56},
 		"spriteSourceSize": {"x":0,"y":0,"w":58,"h":56},
 		"sourceSize": {"w":58,"h":56}
 	},
 	{
 		"filename": "tree_big.png",
 		"trimmed": "true",
-		"frame": {"x":199, "y":0, "w":98, "h":178},
+		"frame": {"x":199, "y":77, "w":98, "h":178},
 		"spriteSourceSize": {"x":0,"y":0,"w":98,"h":178},
 		"sourceSize": {"w":98,"h":178}
+	},
+	{
+		"filename": "tree_big_stump.png",
+		"trimmed": "true",
+		"frame": {"x":365, "y":47, "w":42, "h":50},
+		"spriteSourceSize": {"x":0,"y":0,"w":42,"h":50},
+		"sourceSize": {"w":42,"h":50}
 	},
 	{
 		"filename": "tree_main.png",
@@ -36,11 +43,25 @@
 		"sourceSize": {"w":198,"h":216}
 	},
 	{
+		"filename": "tree_main_stump.png",
+		"trimmed": "true",
+		"frame": {"x":199, "y":0, "w":100, "h":76},
+		"spriteSourceSize": {"x":0,"y":0,"w":100,"h":76},
+		"sourceSize": {"w":100,"h":76}
+	},
+	{
 		"filename": "tree_small.png",
 		"trimmed": "true",
-		"frame": {"x":298, "y":0, "w":66, "h":140},
+		"frame": {"x":298, "y":77, "w":66, "h":140},
 		"spriteSourceSize": {"x":0,"y":0,"w":66,"h":140},
 		"sourceSize": {"w":66,"h":140}
+	},
+	{
+		"filename": "tree_small_stump.png",
+		"trimmed": "true",
+		"frame": {"x":0, "y":217, "w":34, "h":32},
+		"spriteSourceSize": {"x":0,"y":0,"w":34,"h":32},
+		"sourceSize": {"w":34,"h":32}
 	},
 	{
 		"filename": "tree_small_trunk.png",

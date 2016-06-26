@@ -3,6 +3,7 @@ Phaser = require('./phaser-shim.coffee')
 Hero = require('./objects/hero.coffee')
 Unit = require('./objects/unit.coffee')
 Corpse = require('./objects/corpse.coffee')
+Trees = require('./objects/trees.coffee')
 debug = require('./debug.coffee')
 PassableWorld = require('./pathfinding.coffee')
 World = require('./logic/world.coffee')
@@ -14,6 +15,7 @@ space = null
 hero = null
 debugText = null
 map = null
+gameObjects = null
 obstaclesLayer = null
 treetopLayer = null
 groundLayer = null
@@ -56,7 +58,17 @@ module.exports.create = () ->
   map.addTilesetImage('tilemap_main', 'tilemap_main')
   groundLayer = map.createLayer('ground', undefined, undefined, ground)
   obstaclesLayer = map.createLayer('obstacles', undefined, undefined, gameObjects)
-  treetopLayer = map.createLayer('foreground', undefined, undefined, treetops)
+  for tilerow in obstaclesLayer.layer.data
+    for tile in tilerow
+      if tile.index == -1 then continue
+      posx = tile.x * map.tileWidth + map.tileWidth/2
+      posy = tile.y * map.tileHeight + map.tileHeight/2
+      if tile.index == 57 
+        gameObjects.add(new Trees.Small(posx, posy))
+      if tile.index == 58 
+        gameObjects.add(new Trees.Big(posx, posy))
+  gameObjects.add(new Trees.OldOak(31 * map.tileWidth, 13 * map.tileHeight))    
+  
   groundLayer.resizeWorld()
   map.setLayer(obstaclesLayer)
 
@@ -106,7 +118,7 @@ module.exports.update = () ->
   #    treetopLayerItem.alpha = 0.5
 
   passableWorld.update()
-
+  gameObjects.sort('y', Phaser.Group.SORT_ASCENDING); 
   
 module.exports.render = () ->
   #drawing here will cost a big performance penalty, so debug only
